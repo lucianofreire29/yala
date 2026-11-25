@@ -14,7 +14,12 @@ graph YALA {
     filtrar [label="Pesquisar e filtrar\nRF-04"];
     enviar [label="Enviar mensagem\nRF-05"];
     historico [label="Consultar histórico\nRF-06"];
+    excluir [label="Excluir o próprio histórico\nRF-07"];
+    navegar [label="Navegar entre abas\nRF-08"];
+    convite [label="Enviar convite de amizade\nRF-09"];
+    aceitar [label="Aceitar convite recebido\nRF-09"];
+    amigos [label="Consultar amigos e convites\nRF-09"];
   }
   visitante -- {cadastro login};
-  estudante -- {sair perfil ver filtrar enviar historico};
+  estudante -- {sair perfil ver filtrar enviar historico excluir navegar convite aceitar amigos};
 }

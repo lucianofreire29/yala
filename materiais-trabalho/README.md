@@ -29,3 +29,8 @@ As fontes editáveis dos diagramas e a documentação técnica estão em [docs](
 - [Roteiro de implantação e teste online](roteiro-de-publicacao.md)
 
 - [Registro da verificação online](verificacao-online.md)
+
+A versão consolidada do artigo foi salva localmente em
+`documentos-locais/YALA_Artigo_Final.docx`, com os diagramas atualizados,
+os resultados dos testes e a seção de privacidade. Ela segue a regra da
+subpasta local para preservar os dados de identificação do modelo.

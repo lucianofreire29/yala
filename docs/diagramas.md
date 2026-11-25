@@ -2,15 +2,17 @@
 
 ## Casos de uso
 
-O visitante cria uma conta ou entra. O estudante autenticado consulta o diretório
-e gerencia seu perfil. Para enviar ou ler mensagens, precisa preencher o perfil.
-Uma resposta usa o mesmo caso de uso de envio de mensagem.
+O visitante cria uma conta ou entra. Depois de preencher o perfil, a pessoa
+pode descobrir colegas, enviar e aceitar convites, consultar a lista de amigos
+e trocar mensagens. A exclusão do histórico afeta apenas quem a solicitou.
 
 ![Diagrama de casos de uso do YALA](diagramas/casos-de-uso.png)
 
 ## Atividade
 
-O fluxo acompanha a descoberta de um colega até a leitura pelo destinatário.
-A conta que recebe a mensagem abre ou atualiza o histórico para consultá-la.
+A partir do diretório, o usuário pode convidar um colega ou abrir uma conversa.
+O aceite gera uma amizade visível para as duas contas. O destinatário da
+mensagem pode abrir ou atualizar seu histórico, e cada pessoa pode excluir
+o próprio histórico.
 
 ![Diagrama de atividade do YALA](diagramas/atividade.png)
