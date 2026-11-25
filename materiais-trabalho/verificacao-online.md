@@ -20,3 +20,18 @@ documenta o funcionamento técnico e as permissões observadas nessa versão.
 
 [Procedimento de publicação e teste](roteiro-de-publicacao.md) ·
 [Critérios de segurança e privacidade](../docs/privacidade-conversas.md)
+
+## Revisão da navegação e dos convites
+
+O Render serviu a interface com as abas Explorar, Amigos e Meu perfil e com uma
+tela dedicada à conversa, introduzidas no commit `04ccf12`. O fluxo de navegação
+foi testado anteriormente no Chromium local.
+
+No Firestore publicado, o teste com três contas fictícias confirmou que o
+destinatário podia consultar e aceitar o convite, enquanto o remetente e a
+terceira conta receberam acesso negado ao tentar aceitá-lo. A terceira conta
+também recebeu acesso negado ao consultar o convite. Após o aceite, a consulta
+da lista de amigos retornou a amizade confirmada para as duas contas
+participantes. Os registros fictícios foram mantidos no projeto de teste.
+
+[Capturas e decisões de interface](interface/README.md)
