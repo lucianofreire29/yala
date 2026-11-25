@@ -11,7 +11,33 @@ terracota (`#994B32`), amarelo-milho (`#F5CF78`) e fundo claro (`#F4F6F2`).
 A paleta faz referência à vegetação e às paisagens sul-americanas. A imagem de
 fundo é uma paisagem ilustrativa gerada para o YALA, inspirada nos Andes tropicais.
 
-## Telas e interações
+## Revisão da navegação
+
+Após o teste com duas contas, o YALA passou a ter abas separadas para **Explorar**,
+**Amigos** e **Meu perfil**. Em Explorar é possível enviar convites. A aba Amigos
+mostra amizades confirmadas, convites recebidos e convites enviados. O aceite
+feito pelo destinatário coloca os dois perfis na lista um do outro.
+
+O chat tem tela própria, com histórico rolável, campo de mensagem e opções da
+conversa. Voltar retorna ao diretório ou à aba Amigos, conforme a origem. A busca
+e o filtro são preservados ao voltar ao diretório. No celular, o campo de
+mensagem fica junto à base do chat. Conversas já podem ser abertas pelo
+diretório durante o piloto.
+
+| Captura atual | O que documenta |
+| --- | --- |
+| [Chat no celular](04-chat-movel.png) | Tela dedicada, histórico rolável e campo de mensagem. |
+| [Chat no desktop](05-chat-desktop.png) | Tela dedicada em uma janela mais larga. |
+| [Amigos no celular](06-amigos-movel.png) | Amizades confirmadas e convites nas próprias listas. |
+| [Explorar no desktop](07-explorar-desktop.png) | Diretório com navegação para Amigos e Meu perfil. |
+
+No Chromium local, foram verificados o convite, o aceite, a lista bilateral,
+a navegação entre as telas, o retorno com a busca preservada, a reabertura do
+chat pelo navegador e a exclusão individual do histórico. O build para o Render
+passou. A verificação online dos convites depende da publicação das novas regras
+do Firestore.
+
+## Capturas da primeira versão
 
 | Tela | Decisão de interface | Material para o artigo |
 | --- | --- | --- |

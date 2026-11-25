@@ -141,6 +141,32 @@ async function handle(req, res) {
   if (method === 'GET' && path === '/api/directory') {
     return respond(res, 200, db.prepare('SELECT * FROM profiles WHERE account_id <> ? ORDER BY name, account_id').all(account.id));
   }
+  if (method === 'GET' && path === '/api/friends') {
+    return respond(res, 200, db.prepare(`SELECT
+      CASE WHEN account_a = ? THEN account_b ELSE account_a END AS peer_id,
+      sender_id, status FROM friendships WHERE account_a = ? OR account_b = ?`)
+      .all(account.id, account.id, account.id));
+  }
+  const friendship = path.match(/^\/api\/friends\/([1-9]\d*)$/);
+  if (friendship && ['POST', 'PATCH'].includes(method)) {
+    const peer = Number(friendship[1]);
+    if (!Number.isSafeInteger(peer) || peer === account.id || !findProfile.get(peer)) {
+      throw new RequestError(404, 'Perfil indisponível.');
+    }
+    if (!findProfile.get(account.id)) throw new RequestError(409, 'Complete o perfil antes de enviar convites.');
+    await readBody(req);
+    const [first, second] = [Math.min(account.id, peer), Math.max(account.id, peer)];
+    if (method === 'POST') {
+      const inserted = db.prepare(`INSERT INTO friendships (account_a, account_b, sender_id)
+        VALUES (?, ?, ?) ON CONFLICT DO NOTHING`).run(first, second, account.id);
+      if (!inserted.changes) throw new RequestError(409, 'Já existe um convite ou amizade com este perfil.');
+      return respond(res, 201, {});
+    }
+    const accepted = db.prepare(`UPDATE friendships SET status = 'accepted'
+      WHERE account_a = ? AND account_b = ? AND sender_id = ? AND status = 'pending'`).run(first, second, peer);
+    if (!accepted.changes) throw new RequestError(409, 'Não há um convite recebido pendente deste perfil.');
+    return respond(res, 200, {});
+  }
   const conversation = path.match(/^\/api\/messages\/([1-9]\d*)$/);
   if (conversation && ['GET', 'POST', 'DELETE'].includes(method)) {
     const peer = Number(conversation[1]);

@@ -40,3 +40,14 @@ CREATE TABLE IF NOT EXISTS cleared_histories (
   PRIMARY KEY (account_id, peer_id),
   CHECK (account_id <> peer_id)
 );
+
+CREATE TABLE IF NOT EXISTS friendships (
+  account_a INTEGER NOT NULL REFERENCES profiles(account_id),
+  account_b INTEGER NOT NULL REFERENCES profiles(account_id),
+  sender_id INTEGER NOT NULL REFERENCES profiles(account_id),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted')),
+  PRIMARY KEY (account_a, account_b),
+  CHECK (account_a < account_b AND sender_id IN (account_a, account_b))
+);
+
+CREATE INDEX IF NOT EXISTS friendships_by_account_b ON friendships(account_b);

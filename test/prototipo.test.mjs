@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
-test('Duas contas conversam e cada uma controla seu histórico', async (t) => {
+test('Três contas verificam convites, mensagens e exclusão individual', async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'yala-ci-'));
   let server;
   t.after(async () => {
@@ -54,6 +54,18 @@ test('Duas contas conversam e cada uma controla seu histórico', async (t) => {
   const ana = await account('ana_teste', 'Brasil');
   const lucia = await account('lucia_teste', 'Chile');
   const mateo = await account('mateo_teste', 'Peru');
+  const friendPath = (person) => 'friends/' + person.id;
+  const friendsOf = async (person) => (await api('friends', { cookie: person.cookie })).result;
+  await api(friendPath(lucia), { method: 'POST', cookie: ana.cookie, data: {}, status: 201 });
+  assert.deepEqual(await friendsOf(ana), [{ peer_id: lucia.id, sender_id: ana.id, status: 'pending' }]);
+  assert.deepEqual(await friendsOf(lucia), [{ peer_id: ana.id, sender_id: ana.id, status: 'pending' }]);
+  assert.deepEqual(await friendsOf(mateo), []);
+  await api(friendPath(lucia), { method: 'PATCH', cookie: ana.cookie, data: {}, status: 409 });
+  await api(friendPath(ana), { method: 'POST', cookie: lucia.cookie, data: {}, status: 409 });
+  await api(friendPath(ana), { method: 'PATCH', cookie: mateo.cookie, data: {}, status: 409 });
+  await api(friendPath(ana), { method: 'PATCH', cookie: lucia.cookie, data: {} });
+  assert.equal((await friendsOf(ana))[0].status, 'accepted');
+  assert.equal((await friendsOf(lucia))[0].status, 'accepted');
   const pathTo = (person) => 'messages/' + person.id;
   const history = async (from, peer) => (await api(pathTo(peer), { cookie: from.cookie })).result.map(({ body }) => body);
 

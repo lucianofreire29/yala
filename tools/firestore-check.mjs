@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { assertFails, initializeTestEnvironment } from '@firebase/rules-unit-testing';
 import {
-  collection, doc, getDocFromServer, getDocsFromServer, orderBy, query, serverTimestamp, setDoc, where,
+  collection, doc, getDocFromServer, getDocsFromServer, orderBy, query, serverTimestamp, setDoc, updateDoc, where,
 } from 'firebase/firestore';
 
 test('Regras do Firestore restringem conversas e aplicam a exclusão individual', async (t) => {
@@ -25,6 +25,20 @@ test('Regras do Firestore restringem conversas e aplicam a exclusão individual'
   await assertFails(getDocsFromServer(collection(guest, 'profiles')));
   await assertFails(setDoc(doc(clara, 'profiles', 'ana'), profile));
   await assertFails(setDoc(doc(ana, 'profiles', 'ana'), { ...profile, email: 'privado@example.test' }));
+
+  const invitePath = 'friendships/ana:bia';
+  const invite = { participants: ['ana', 'bia'], senderId: 'ana', status: 'pending' };
+  await assertFails(setDoc(doc(ana, invitePath), { ...invite, status: 'accepted' }));
+  await setDoc(doc(ana, invitePath), invite);
+  await assertFails(getDocFromServer(doc(clara, invitePath)));
+  await assertFails(setDoc(doc(bia, 'friendships/bia:ana'), { participants: ['bia', 'ana'], senderId: 'bia', status: 'pending' }));
+  await assertFails(updateDoc(doc(ana, invitePath), { status: 'accepted' }));
+  await assertFails(updateDoc(doc(bia, invitePath), { status: 'accepted', senderId: 'bia' }));
+  await updateDoc(doc(bia, invitePath), { status: 'accepted' });
+  for (const [db, uid] of [[ana, 'ana'], [bia, 'bia']]) {
+    const list = query(collection(db, 'friendships'), where('participants', 'array-contains', uid));
+    assert.equal((await getDocsFromServer(list)).docs[0].data().status, 'accepted');
+  }
 
   const path = 'conversations/ana:bia';
   await assertFails(setDoc(doc(clara, path), { participants: ['ana', 'clara'] }));

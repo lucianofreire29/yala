@@ -1,6 +1,6 @@
 # Banco de dados do YALA 1.0
 
-O banco é SQLite. O [esquema executado pelo servidor](../schema.sql) cria cinco
+O banco é SQLite. O [esquema executado pelo servidor](../schema.sql) cria seis
 tabelas e ativa a verificação de chaves estrangeiras.
 
 | Tabela | Chave | Dados e relação |
@@ -10,6 +10,7 @@ tabelas e ativa a verificação de chaves estrangeiras.
 | `sessions` | `token_hash` | Hash do identificador de sessão, conta associada e vencimento. Cada conta pode ter várias sessões com validade de oito horas. |
 | `messages` | `id` | Remetente e destinatário referenciam perfis distintos. Guarda texto e horário de envio. |
 | `cleared_histories` | `account_id`, `peer_id` | Identificador da última mensagem excluída do histórico da conta solicitante para aquele contato. |
+| `friendships` | `account_a`, `account_b` | Par único de perfis, remetente do convite e situação pendente ou aceita. |
 
 ```mermaid
 erDiagram
@@ -19,6 +20,7 @@ erDiagram
     PROFILES ||--o{ MESSAGES : recebe
     PROFILES ||--o{ CLEARED_HISTORIES : solicita
     PROFILES ||--o{ CLEARED_HISTORIES : corresponde
+    PROFILES ||--o{ FRIENDSHIPS : participa
 ```
 
 Uma conversa é o conjunto de mensagens entre dois perfis nos dois sentidos.

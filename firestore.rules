@@ -26,6 +26,27 @@ service cloud.firestore {
         && validProfile(request.resource.data);
     }
 
+    match /friendships/{friendshipId} {
+      function validInvite(data) {
+        let pair = data.participants;
+        return data.keys().hasOnly(['participants', 'senderId', 'status'])
+          && pair is list && pair.size() == 2 && pair[0] is string && pair[1] is string
+          && pair[0].matches('^[A-Za-z0-9_-]+$') && pair[1].matches('^[A-Za-z0-9_-]+$')
+          && pair[0] != pair[1] && friendshipId == pair[0] + ':' + pair[1]
+          && !existsAfter(/databases/$(database)/documents/friendships/$(pair[1] + ':' + pair[0]))
+          && exists(/databases/$(database)/documents/profiles/$(pair[0]))
+          && exists(/databases/$(database)/documents/profiles/$(pair[1]))
+          && request.auth.uid in pair && data.senderId == request.auth.uid && data.status == 'pending';
+      }
+
+      allow read: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn() && validInvite(request.resource.data);
+      allow update: if signedIn() && request.auth.uid in resource.data.participants
+        && request.auth.uid != resource.data.senderId && resource.data.status == 'pending'
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+    }
+
     match /conversations/{conversationId} {
       function participant(data) {
         return signedIn() && request.auth.uid in data.participants;

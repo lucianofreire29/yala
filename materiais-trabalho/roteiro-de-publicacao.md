@@ -78,3 +78,12 @@ npx firebase deploy --only firestore:rules --project ID_DO_PROJETO
 
 [Arquitetura e verificação](../docs/publicacao-firebase.md) ·
 [Privacidade e LGPD](../docs/privacidade-conversas.md)
+
+## Atualizar as regras após a inclusão de Amigos
+
+No projeto Firebase já usado pelo Render, abra **Firestore Database → Regras**.
+Copie o arquivo [firestore.rules](../firestore.rules) inteiro da branch de
+publicação e clique em **Publicar**. A nova versão inclui a seção
+`match /friendships/{friendshipId}`. Use duas contas fictícias. Na primeira,
+envie um convite em **Explorar**. Na segunda, abra **Amigos** e aceite. Atualize
+a lista da primeira conta e confira que os dois aparecem em **Meus amigos**.

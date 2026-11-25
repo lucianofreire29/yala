@@ -9,17 +9,21 @@
 <script src="app.js" type="module"></script>
 </head>
 <body>
-<a class="skip" href="#main">Ir para o conteúdo</a>
+<a id="skip-content" class="skip" href="#main">Ir para o conteúdo</a>
 <header class="topbar">
   <div class="shell topbar-inner">
     <a class="brand" href="./" aria-label="YALA, início"><span class="brand-mark" aria-hidden="true">Y</span> YALA<span class="brand-dot">.</span></a>
     <div id="session-bar" class="session-bar" hidden>
-      <nav aria-label="Navegação principal"><a href="#directory-title">Explorar</a><a href="#profile-title">Meu perfil</a></nav>
+      <nav aria-label="Navegação principal">
+        <a href="#explorar" id="nav-explore">Explorar</a>
+        <a href="#amigos" id="nav-friends">Amigos</a>
+        <a href="#perfil" id="nav-profile">Meu perfil</a>
+      </nav>
       <span id="account-name"></span><button id="logout" class="quiet">Sair</button>
     </div>
   </div>
 </header>
-<main id="main" class="shell">
+<main id="main" class="shell" tabindex="-1">
   <p id="session-status" class="status" role="status"></p>
   <section id="access" class="welcome" aria-labelledby="access-title">
     <div class="welcome-visual">
@@ -40,14 +44,13 @@
       <p class="access-note">Versão de teste. Use dados fictícios e uma senha exclusiva.</p>
     </div>
   </section>
-  <div id="workspace" hidden>
+  <div id="workspace" class="workspace" hidden>
     <section class="directory-banner">
       <p class="eyebrow"><span></span> Rede acadêmica sul-americana</p>
       <h1>Explore sua rede.</h1>
       <p>Descubra quem estuda os mesmos temas e comece uma conversa.</p>
     </section>
-    <div class="layout">
-      <section aria-labelledby="directory-title">
+    <section aria-labelledby="directory-title">
         <div class="directory-tools panel">
           <h2 id="directory-title">Explorar estudantes</h2>
           <div class="filters">
@@ -60,27 +63,10 @@
           </div>
         </div>
         <div id="cards"></div>
-      </section>
-      <aside aria-label="Perfil e conversas">
-        <section class="panel" id="conversation" hidden aria-labelledby="conversation-title">
-          <div class="panel-heading">
-            <h2 id="conversation-title" tabindex="-1"></h2>
-            <button type="button" id="close-conversation" class="quiet">Fechar</button>
-          </div>
-          <p id="empty-conversation" class="muted" hidden>Nenhuma mensagem nesta conversa ainda.</p>
-          <ul id="history" aria-label="Histórico de mensagens" aria-live="polite"></ul>
-          <form id="message-form">
-            <label>Mensagem<textarea name="message" required maxlength="500" rows="3" placeholder="Escreva sua mensagem"></textarea></label>
-            <div class="message-actions">
-              <button>Enviar mensagem</button>
-              <button type="button" id="refresh-messages" class="quiet">Atualizar conversa</button>
-            </div>
-            <p id="message-status" role="status"></p>
-          </form>
-          <button type="button" id="clear-history" class="quiet destructive">Excluir conversa do meu histórico</button>
-        </section>
-        <section class="panel" aria-labelledby="profile-title">
-          <div class="panel-heading"><h2 id="profile-title">Meu perfil</h2><span class="avatar self-avatar" id="profile-avatar" aria-hidden="true"></span></div>
+    </section>
+  </div>
+  <section class="panel profile-screen" id="profile-screen" hidden aria-labelledby="profile-title">
+          <div class="panel-heading"><h2 id="profile-title" tabindex="-1">Meu perfil</h2><span class="avatar self-avatar" id="profile-avatar" aria-hidden="true"></span></div>
           <p class="muted">Seu perfil fica visível para outras contas conectadas.</p>
           <form id="profile">
             <label>Nome no diretório<input name="name" required maxlength="60"></label>
@@ -91,10 +77,56 @@
             <button>Salvar perfil</button>
             <p id="profile-status" role="status"></p>
           </form>
-        </section>
-      </aside>
+
+  </section>
+  <section id="friends-screen" class="friends-screen" hidden aria-labelledby="friends-title">
+    <div class="friends-heading">
+      <h1 id="friends-title" tabindex="-1">Amigos</h1>
+      <button type="button" id="refresh-friends" class="secondary">Atualizar</button>
     </div>
-  </div>
+    <p id="friends-status" role="status"></p>
+    <div class="friend-groups">
+      <section class="panel" aria-labelledby="accepted-title">
+        <h2 id="accepted-title">Meus amigos</h2>
+        <div class="friend-list" id="accepted-friends"></div>
+      </section>
+      <section class="panel" aria-labelledby="received-title">
+        <h2 id="received-title">Convites recebidos</h2>
+        <div class="friend-list" id="received-friends"></div>
+      </section>
+      <section class="panel" aria-labelledby="sent-title">
+        <h2 id="sent-title">Convites enviados</h2>
+        <div class="friend-list" id="sent-friends"></div>
+      </section>
+    </div>
+  </section>
+  <section class="chat panel" id="conversation" hidden aria-labelledby="conversation-title">
+    <div class="chat-header">
+      <button type="button" id="close-conversation" class="quiet chat-back"><span aria-hidden="true">←</span> Voltar à rede</button>
+      <div class="chat-contact">
+        <span id="conversation-avatar" class="avatar" aria-hidden="true"></span>
+        <h1 id="conversation-title" tabindex="-1"></h1>
+      </div>
+      <details class="chat-options" id="chat-options">
+        <summary>Opções</summary>
+        <div>
+          <button type="button" id="clear-history" class="quiet destructive">Excluir conversa do meu histórico</button>
+        </div>
+      </details>
+    </div>
+    <div class="chat-scroll" id="chat-scroll" tabindex="0" role="region" aria-label="Histórico de mensagens">
+      <p id="empty-conversation" class="muted" hidden>Nenhuma mensagem nesta conversa ainda.</p>
+      <ul id="history" aria-label="Mensagens" aria-live="polite"></ul>
+    </div>
+    <form id="message-form" class="chat-composer">
+      <label>Mensagem<textarea name="message" required maxlength="500" rows="2" placeholder="Escreva sua mensagem"></textarea></label>
+      <div class="message-actions">
+        <button type="button" id="refresh-messages" class="quiet">Atualizar conversa</button>
+        <button>Enviar mensagem</button>
+      </div>
+      <p id="message-status" role="status"></p>
+    </form>
+  </section>
   <dialog id="clear-history-dialog" aria-labelledby="clear-history-title" aria-describedby="clear-history-description">
     <h2 id="clear-history-title">Excluir do meu histórico?</h2>
     <p id="clear-history-description">Você perderá o acesso às mensagens anteriores. A outra pessoa mantém o histórico dela. Novas mensagens continuarão aparecendo para você.</p>

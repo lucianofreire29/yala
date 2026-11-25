@@ -15,6 +15,7 @@ O protótipo atual usa Node.js e SQLite. Para a versão online de testes, a prop
 - `conversations/{id}`. Dois identificadores distintos de usuários. O par permanece fixo após a criação. A leitura é limitada aos participantes.
 - `conversations/{id}/historyCutoffs/{uid}`. Marco de exclusão definido pelo horário do servidor. Apenas o dono pode ler e atualizar o próprio marco.
 - `conversations/{id}/messages/{messageId}`. Remetente, texto de até 500 caracteres e horário do servidor. Só participantes podem consultar ou criar mensagens. O remetente deve corresponder à conta autenticada.
+- `friendships/{id}`. Identificadores dos dois participantes, remetente e situação do convite. Somente os participantes consultam o documento. Apenas o destinatário altera o convite pendente para aceito.
 - `avatars/{uid}/profile`. Caminho proposto para a foto. O envio deve ser limitado ao dono do perfil, com regras de tamanho e tipo. No primeiro teste, a interface pode exibir iniciais enquanto o upload estiver desativado.
 
 O Render serve apenas os arquivos gerados em `dist/`. O navegador acessa o Authentication e o Firestore diretamente. Os históricos são consultados no servidor e filtrados pelo marco de exclusão de cada conta. O identificador da conversa combina os dois UIDs, ordenados pelo cliente. O diretório guarda apenas os campos acadêmicos. Para preservar o filtro textual por universidade, curso e interesses no piloto, a interface pode aplicar a busca sobre o diretório carregado. O Firestore não oferece busca textual completa nativa.

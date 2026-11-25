@@ -18,6 +18,8 @@ no protótipo. A utilidade para o público ainda deverá ser avaliada com estuda
 | RF-05 | Enviar mensagem privada a outro perfil. | Um estudante com perfil preenchido abre a conversa e envia texto de até 500 caracteres. O destinatário consulta a mensagem ao abrir ou atualizar a conversa. |
 | RF-06 | Consultar o histórico e responder. | As duas contas veem a troca nos dois sentidos, na ordem de registro. Uma terceira conta vê apenas suas próprias conversas. |
 | RF-07 | Excluir a conversa do próprio histórico. | Após confirmar, a conta perde acesso às mensagens anteriores. A outra conta mantém o histórico e novas mensagens aparecem para ambas. |
+| RF-08 | Navegar entre Explorar, Amigos e Meu perfil. | Cada área ocupa uma tela própria. Abrir uma conversa leva ao chat e voltar recupera a lista anterior. |
+| RF-09 | Enviar convite e aceitar convites recebidos. | O remetente vê o convite enviado. Só o destinatário pode aceitá-lo. Após o aceite, cada conta vê a outra em Meus amigos. |
 
 ## Requisitos não funcionais
 

@@ -45,6 +45,7 @@ test('O build online permite cadastrar contas, conversar e limpar apenas o próp
     await page.getByLabel('E-mail').fill(name.toLowerCase() + '@example.test');
     await page.getByLabel('Senha').fill('Senha-ficticia-123');
     await page.getByRole('button', { name: 'Criar conta' }).click();
+    await page.getByRole('link', { name: 'Meu perfil' }).click();
     await page.getByLabel('Nome no diretório').fill(name);
     await page.locator('#profile [name=country]').selectOption(country);
     await page.getByLabel('Universidade', { exact: true }).fill('Universidade Exemplo');
@@ -52,12 +53,15 @@ test('O build online permite cadastrar contas, conversar e limpar apenas o próp
     await page.getByLabel('Interesses', { exact: true }).fill('Dados abertos');
     await page.getByRole('button', { name: 'Salvar perfil' }).click();
     await page.getByText('Perfil salvo no diretório.').waitFor();
+    await page.getByRole('link', { name: 'Explorar', exact: true }).click();
     return page;
   }
 
   async function openChat(page, peer) {
     await page.getByRole('button', { name: 'Atualizar diretório' }).click();
     await page.getByRole('button', { name: 'Abrir conversa com ' + peer }).click();
+    await page.getByRole('heading', { name: 'Conversa com ' + peer }).waitFor();
+    await page.locator('#workspace').waitFor({ state: 'hidden' });
   }
 
   async function send(page, body) {
@@ -68,11 +72,22 @@ test('O build online permite cadastrar contas, conversar e limpar apenas o próp
 
   const ana = await register('Ana', 'Brasil');
   const bia = await register('Bia', 'Chile');
+  await ana.getByRole('button', { name: 'Atualizar diretório' }).click();
+  await ana.getByRole('button', { name: 'Convidar Bia' }).click();
+  await ana.getByText('Convite enviado.', { exact: true }).waitFor();
+  await bia.getByRole('link', { name: 'Amigos' }).click();
+  await bia.getByRole('button', { name: 'Aceitar convite de Ana' }).click();
+  await bia.locator('#accepted-friends').getByText('Ana', { exact: true }).waitFor();
+  await ana.getByRole('link', { name: 'Amigos' }).click();
+  await ana.locator('#accepted-friends').getByText('Bia', { exact: true }).waitFor();
+  await ana.getByRole('link', { name: 'Explorar', exact: true }).click();
+  await bia.getByRole('link', { name: 'Explorar', exact: true }).click();
   await openChat(ana, 'Bia');
   await send(ana, 'Vamos estudar juntas?');
   await openChat(bia, 'Ana');
   await bia.getByText('Vamos estudar juntas?', { exact: true }).waitFor();
 
+  await ana.getByText('Opções', { exact: true }).click();
   await ana.getByRole('button', { name: 'Excluir conversa do meu histórico' }).click();
   await ana.getByRole('button', { name: 'Excluir meu histórico' }).click();
   await ana.getByText('Conversa excluída do seu histórico.').waitFor();
@@ -85,4 +100,7 @@ test('O build online permite cadastrar contas, conversar e limpar apenas o próp
   await ana.getByRole('button', { name: 'Atualizar conversa' }).click();
   await ana.getByText('Vamos!', { exact: true }).waitFor();
   assert.equal(await ana.locator('#history li').count(), 1);
+  await ana.getByRole('button', { name: 'Voltar à rede' }).click();
+  await ana.getByRole('heading', { name: 'Explorar estudantes' }).waitFor();
+  await ana.locator('#conversation').waitFor({ state: 'hidden' });
 });

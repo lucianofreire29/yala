@@ -11,6 +11,9 @@ const fields = Object.keys(profileLimits);
 let account;
 let ownProfile;
 let students = [];
+let friendships = [];
+let friendshipRequest = 0;
+let handledHash;
 let recipient;
 let historyRequest = 0;
 const firebaseConfig = typeof YALA_FIREBASE_CONFIG === 'undefined' ? null : YALA_FIREBASE_CONFIG;
@@ -55,12 +58,80 @@ function updateAvatar() {
   byId('profile-avatar').textContent = initials(ownProfile?.name || account?.username || '');
 }
 
-function closeConversation() {
+const chatHash = '#conversa/';
+
+function showWorkspace() {
   const previous = recipient;
   recipient = null;
+  historyRequest++;
   byId('history').replaceChildren();
   byId('conversation').hidden = true;
-  if (previous) byId('cards').querySelector(`[data-peer="${CSS.escape(String(previous.account_id))}"]`)?.focus();
+  handledHash = location.hash;
+  const tab = ({ '#perfil': 'profile', '#amigos': 'friends' })[location.hash] ?? 'explore';
+  byId('workspace').hidden = !account || tab !== 'explore';
+  byId('profile-screen').hidden = !account || tab !== 'profile';
+  byId('friends-screen').hidden = !account || tab !== 'friends';
+  for (const name of ['explore', 'friends', 'profile']) {
+    const link = byId('nav-' + name);
+    if (name === tab) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  }
+  document.body.classList.remove('chat-open');
+  if (previous) {
+    const list = tab === 'friends' ? byId('accepted-friends') : byId('cards');
+    const card = list.querySelector(`[data-peer="${CSS.escape(String(previous.account_id))}"]`);
+    (card ?? (tab === 'friends' ? byId('friends-title') : query)).focus();
+  }
+}
+
+function closeConversation() {
+  if (window.history.state?.yalaChat) {
+    window.history.back();
+  } else {
+    window.history.replaceState(null, '', location.pathname + location.search);
+    showWorkspace();
+  }
+}
+
+async function updateView() {
+  if (!account || !location.hash.startsWith(chatHash)) {
+    const previous = recipient;
+    showWorkspace();
+    if (account && location.hash === '#amigos') {
+      await refreshFriendsScreen();
+      if (previous && location.hash === '#amigos' && document.activeElement === document.body) {
+        byId('accepted-friends').querySelector(`[data-peer="${CSS.escape(String(previous.account_id))}"]`)?.focus();
+      }
+    }
+    return;
+  }
+
+  const peerId = location.hash.slice(chatHash.length);
+  const peer = students.find((student) => encodeURIComponent(String(student.account_id)) === peerId);
+  if (!ownProfile || !peer) {
+    window.history.replaceState(null, '', ownProfile ? '#explorar' : '#perfil');
+    showWorkspace();
+    if (!ownProfile) profile.elements.name.focus();
+    throw new Error(!ownProfile ? 'Complete o seu perfil para iniciar uma conversa.' : 'Este perfil está indisponível.');
+  }
+  handledHash = location.hash;
+  if (recipient?.account_id === peer.account_id) return;
+
+  recipient = peer;
+  messageForm.reset();
+  byId('history').replaceChildren();
+  byId('empty-conversation').hidden = true;
+  byId('message-status').textContent = '';
+  byId('chat-options').open = false;
+  byId('conversation-avatar').textContent = initials(peer.name);
+  for (const id of ['workspace', 'profile-screen', 'friends-screen']) byId(id).hidden = true;
+  byId('conversation').hidden = false;
+  document.body.classList.add('chat-open');
+  const title = byId('conversation-title');
+  title.textContent = 'Conversa com ' + peer.name;
+  window.scrollTo(0, 0);
+  title.focus({ preventScroll: true });
+  await renderMessages();
 }
 
 function action(target, callback) {
@@ -98,31 +169,108 @@ function renderDirectory() {
     avatar.setAttribute('aria-hidden', 'true');
     const location = element('p', student.country);
     location.className = 'country';
-    const button = element('button', 'Abrir conversa');
-    button.className = 'secondary';
-    button.dataset.peer = student.account_id;
-    button.setAttribute('aria-label', 'Abrir conversa com ' + student.name);
-    button.addEventListener('click', action('session-status', async () => {
-      if (!ownProfile) {
-        profile.elements.name.focus();
-        throw new Error('Complete o seu perfil para iniciar uma conversa.');
-      }
-      recipient = student;
-      messageForm.reset();
-      byId('history').replaceChildren();
-      byId('empty-conversation').hidden = true;
-      byId('message-status').textContent = '';
-      byId('conversation').hidden = false;
-      const title = byId('conversation-title');
-      title.textContent = 'Conversa com ' + student.name;
-      title.focus();
-      await renderMessages();
-    }));
+    const buttons = element('div', '');
+    buttons.className = 'card-actions';
+    buttons.append(conversationButton(student));
+    const relationship = friendships.find((entry) => entry.peer_id === student.account_id);
+    if (!relationship) buttons.append(friendButton(student, 'Convidar', 'POST', 'session-status'));
+    else if (relationship.status === 'pending' && relationship.sender_id !== account.id) {
+      buttons.append(friendButton(student, 'Aceitar convite', 'PATCH', 'session-status'));
+    } else {
+      const label = element('span', relationship.status === 'accepted' ? 'Amigo' : 'Convite enviado');
+      label.className = 'friend-label';
+      buttons.append(label);
+    }
     const interests = element('p', student.interests);
     interests.className = 'interests';
-    card.append(avatar, location, element('h3', student.name), element('p', student.course + ' · ' + student.university), interests, button);
+    card.append(avatar, location, element('h3', student.name), element('p', student.course + ' · ' + student.university), interests, buttons);
     return card;
   }));
+}
+
+function conversationButton(student) {
+  const button = element('button', 'Abrir conversa');
+  button.className = 'secondary';
+  button.dataset.peer = student.account_id;
+  button.setAttribute('aria-label', 'Abrir conversa com ' + student.name);
+  button.addEventListener('click', action('session-status', async () => {
+    if (!ownProfile) {
+      window.history.pushState(null, '', '#perfil');
+      showWorkspace();
+      profile.elements.name.focus();
+      throw new Error('Complete o seu perfil para iniciar uma conversa.');
+    }
+    window.history.pushState({ yalaChat: true }, '', chatHash + encodeURIComponent(String(student.account_id)));
+    try {
+      await updateView();
+    } catch (error) {
+      byId('message-status').textContent = error.message;
+    }
+  }));
+  return button;
+}
+
+function friendButton(student, label, method, statusId) {
+  const button = element('button', label);
+  button.className = method === 'POST' ? 'quiet' : 'secondary';
+  button.setAttribute('aria-label', label + (method === 'POST' ? ' ' : ' de ') + student.name);
+  button.addEventListener('click', action(statusId, async () => {
+    if (!ownProfile) {
+      location.hash = '#perfil';
+      throw new Error('Complete o seu perfil para gerenciar convites.');
+    }
+    button.disabled = true;
+    try {
+      await api('friends/' + student.account_id, method, {});
+      byId(statusId).textContent = method === 'POST' ? 'Convite enviado.' : 'Convite aceito.';
+      await refreshFriendships();
+    } finally {
+      button.disabled = false;
+    }
+  }));
+  return button;
+}
+
+function renderFriends() {
+  const groups = [
+    ['accepted-friends', 'accepted', null, 'Você ainda não tem amigos adicionados.'],
+    ['received-friends', 'pending', false, 'Nenhum convite recebido.'],
+    ['sent-friends', 'pending', true, 'Nenhum convite enviado.'],
+  ];
+  for (const [id, status, outgoing, empty] of groups) {
+    const rows = [];
+    for (const relationship of friendships) {
+      if (relationship.status !== status || (outgoing !== null && (relationship.sender_id === account.id) !== outgoing)) continue;
+      const peer = students.find((student) => student.account_id === relationship.peer_id);
+      if (!peer) continue;
+      const row = element('div', '');
+      row.className = 'friend-row';
+      const info = element('div', '');
+      info.append(element('strong', peer.name), element('p', peer.course + ' · ' + peer.university));
+      row.append(info);
+      if (status === 'accepted') row.append(conversationButton(peer));
+      else if (!outgoing) row.append(friendButton(peer, 'Aceitar convite', 'PATCH', 'friends-status'));
+      rows.push(row);
+    }
+    const emptyState = element('p', empty);
+    emptyState.className = 'muted';
+    byId(id).replaceChildren(...(rows.length ? rows : [emptyState]));
+  }
+}
+
+async function refreshFriendships() {
+  const viewer = account;
+  const request = ++friendshipRequest;
+  const relationships = await api('friends');
+  if (account !== viewer || request !== friendshipRequest) return;
+  friendships = relationships;
+  renderDirectory();
+  renderFriends();
+}
+
+async function refreshFriendsScreen() {
+  await refreshDirectory();
+  await refreshFriendships();
 }
 
 async function refreshDirectory() {
@@ -137,18 +285,22 @@ async function updateSession() {
   const session = await api('session');
   account = session.account;
   ownProfile = session.profile;
-  recipient = null;
   students = [];
-  byId('history').replaceChildren();
-  byId('conversation').hidden = true;
+  friendships = [];
+  renderFriends();
+  recipient = null;
+  showWorkspace();
   byId('profile-status').textContent = '';
   updateAvatar();
   byId('account-name').textContent = account?.username ?? '';
   byId('access').hidden = Boolean(account);
   byId('session-bar').hidden = !account;
-  byId('workspace').hidden = !account;
   for (const field of fields) profile.elements[field].value = ownProfile?.[field] ?? '';
-  if (account) await refreshDirectory();
+  if (account) {
+    await refreshDirectory();
+    await updateView();
+    if (location.hash !== '#amigos') refreshFriendships().catch(() => {});
+  }
 }
 
 async function renderMessages() {
@@ -159,6 +311,8 @@ async function renderMessages() {
   const messages = await api('messages/' + peer.account_id);
   if (account !== viewer || recipient !== peer || request !== historyRequest) return;
   byId('empty-conversation').hidden = messages.length > 0;
+  const scroller = byId('chat-scroll');
+  const nearBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40;
   byId('history').replaceChildren(...messages.map((message) => {
     const outgoing = message.sender_id === viewer.id;
     const item = document.createElement('li');
@@ -167,6 +321,7 @@ async function renderMessages() {
     item.append(element('small', `${sender} · ${new Date(message.sent_at).toLocaleString('pt-BR')}`), element('p', message.body));
     return item;
   }));
+  if (nearBottom) scroller.scrollTop = scroller.scrollHeight;
 }
 
 auth.addEventListener('submit', action('session-status', async (event) => {
@@ -184,6 +339,7 @@ auth.addEventListener('submit', action('session-status', async (event) => {
 
 byId('logout').addEventListener('click', action('session-status', async () => {
   await api('logout', 'POST', {});
+  if (location.hash.startsWith(chatHash)) window.history.replaceState(null, '', location.pathname + location.search);
   await updateSession();
   auth.elements.username.focus();
 }));
@@ -227,6 +383,8 @@ clearDialog.addEventListener('close', action('message-status', async () => {
   try {
     await api('messages/' + peer.account_id, 'DELETE', {});
     if (account !== viewer || recipient !== peer) return;
+    byId('chat-options').open = false;
+    byId('chat-options').querySelector('summary').focus();
     byId('history').replaceChildren();
     byId('empty-conversation').hidden = false;
     byId('message-status').textContent = 'Conversa excluída do seu histórico.';
@@ -237,8 +395,25 @@ clearDialog.addEventListener('close', action('message-status', async () => {
 }));
 
 byId('close-conversation').addEventListener('click', closeConversation);
+byId('skip-content').addEventListener('click', (event) => {
+  event.preventDefault();
+  byId(recipient ? 'conversation-title' : 'main').focus();
+});
+function onNavigation() {
+  if (!account || handledHash === location.hash) return;
+  handledHash = location.hash;
+  updateView().catch((error) => {
+    byId(recipient ? 'message-status' : location.hash === '#amigos' ? 'friends-status' : 'session-status').textContent = error.message;
+  });
+}
+window.addEventListener('popstate', onNavigation);
+window.addEventListener('hashchange', onNavigation);
 byId('refresh-messages').addEventListener('click', action('message-status', renderMessages));
-byId('refresh-directory').addEventListener('click', action('session-status', refreshDirectory));
+byId('refresh-directory').addEventListener('click', action('session-status', async () => {
+  await refreshDirectory();
+  refreshFriendships().catch(() => {});
+}));
+byId('refresh-friends').addEventListener('click', action('friends-status', refreshFriendsScreen));
 query.addEventListener('input', renderDirectory);
 country.addEventListener('change', renderDirectory);
 updateSession().catch((error) => { byId('session-status').textContent = error.message; });

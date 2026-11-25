@@ -5,7 +5,7 @@ import {
 } from 'firebase/auth';
 import {
   collection, connectFirestoreEmulator, doc, getDocFromServer, getDocsFromServer, getFirestore, orderBy, query,
-  serverTimestamp, setDoc, where, addDoc,
+  serverTimestamp, setDoc, updateDoc, where, addDoc,
 } from 'firebase/firestore';
 
 export function createFirebaseApi(config, useEmulators) {
@@ -92,6 +92,29 @@ export function createFirebaseApi(config, useEmulators) {
         return result.docs.filter((profile) => profile.id !== user.uid)
           .map((profile) => ({ account_id: profile.id, ...profile.data() }))
           .sort((first, second) => first.name.localeCompare(second.name, 'pt-BR'));
+      }
+      if (path === 'friends') {
+        const relationships = await getDocsFromServer(query(collection(db, 'friendships'),
+          where('participants', 'array-contains', user.uid)));
+        return relationships.docs.map((entry) => {
+          const friendship = entry.data();
+          return {
+            peer_id: friendship.participants.find((uid) => uid !== user.uid),
+            sender_id: friendship.senderId,
+            status: friendship.status,
+          };
+        });
+      }
+      if (path.startsWith('friends/') && ['POST', 'PATCH'].includes(method)) {
+        const peer = path.slice('friends/'.length);
+        const participants = [user.uid, peer].sort();
+        const reference = doc(db, 'friendships', participants.join(':'));
+        if (method === 'POST') {
+          await setDoc(reference, { participants, senderId: user.uid, status: 'pending' });
+        } else {
+          await updateDoc(reference, { status: 'accepted' });
+        }
+        return {};
       }
       if (path.startsWith('messages/') && messages[method]) {
         const peer = path.slice('messages/'.length);
