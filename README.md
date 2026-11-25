@@ -34,3 +34,9 @@ acesso, moderação e operação.
 - [Modelo do banco de dados](docs/banco-de-dados.md)
 - [Diagramas de atividade e casos de uso](docs/diagramas.md)
 - [Materiais do trabalho acadêmico](materiais-trabalho/README.md)
+
+## Validação automática
+
+Execute `node --test` com Node.js 24. O GitHub Actions verifica a sintaxe e
+executa o teste de integração em pushes e pull requests. O teste cria um banco
+temporário e verifica troca de mensagens, isolamento e exclusão individual.
