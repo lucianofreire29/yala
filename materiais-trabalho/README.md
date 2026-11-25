@@ -25,3 +25,5 @@ As fontes editáveis dos diagramas e a documentação técnica estão em [docs](
 - [Interface, decisões visuais e capturas](interface/README.md)
 
 - [Sigilo das conversas e LGPD](../docs/privacidade-conversas.md)
+
+- [Roteiro de implantação e teste online](roteiro-de-publicacao.md)
