@@ -33,7 +33,7 @@
       <h2 id="access-title">Acesse o YALA</h2>
       <p class="muted">Entre com sua conta ou crie uma para explorar a rede.</p>
       <form id="auth">
-        <label>Usuário<input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Letras, números e _"></label>
+        <label><span id="username-label">Usuário</span><input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Letras, números e _"></label>
         <label>Senha<input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" placeholder="Pelo menos 8 caracteres"></label>
         <div class="auth-actions"><button name="action" value="login">Entrar</button><button name="action" value="register" class="secondary">Criar conta</button></div>
       </form>

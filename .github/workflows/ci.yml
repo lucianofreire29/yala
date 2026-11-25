@@ -23,3 +23,27 @@ jobs:
           node --check server.mjs
       - name: Testar API e privacidade das conversas
         run: node --test
+
+  firebase:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Montar versão online com configuração de demonstração
+        run: npm run build:online
+        env:
+          YALA_FIREBASE_API_KEY: demo-key
+          YALA_FIREBASE_AUTH_DOMAIN: demo-yala.firebaseapp.com
+          YALA_FIREBASE_PROJECT_ID: demo-yala
+          YALA_FIREBASE_APP_ID: demo
+      - name: Testar regras do Firestore no emulador
+        run: npm run test:rules

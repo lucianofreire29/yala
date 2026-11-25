@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function text(value, maxLength) {
+      return value is string && value.size() > 0 && value.size() <= maxLength
+        && value.matches('(?s).*[^\\s].*');
+    }
+
+    function validProfile(profile) {
+      return profile.keys().hasOnly(['name', 'country', 'university', 'course', 'interests'])
+        && text(profile.name, 60)
+        && profile.country in ['Argentina', 'Bolívia', 'Brasil', 'Chile', 'Colômbia', 'Equador',
+          'Guiana', 'Paraguai', 'Peru', 'Suriname', 'Uruguai', 'Venezuela']
+        && text(profile.university, 100)
+        && text(profile.course, 80)
+        && text(profile.interests, 120);
+    }
+
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && validProfile(request.resource.data);
+    }
+
+    match /conversations/{conversationId} {
+      function participant(data) {
+        return signedIn() && request.auth.uid in data.participants;
+      }
+
+      function parentParticipant() {
+        return signedIn() && participant(get(/databases/$(database)/documents/conversations/$(conversationId)).data);
+      }
+
+      function visibleMessage(sentAt) {
+        let uid = request.auth.uid;
+        let cutoff = /databases/$(database)/documents/conversations/$(conversationId)/historyCutoffs/$(uid);
+        return !exists(cutoff) || sentAt > get(cutoff).data.hiddenThrough;
+      }
+
+      function profileExists(uid) {
+        return uid is string && uid.matches('^[A-Za-z0-9_-]+$') && exists(/databases/$(database)/documents/profiles/$(uid));
+      }
+
+      function validParticipants(data) {
+        let pair = data.participants;
+        return data.keys().hasOnly(['participants'])
+          && pair is list && pair.size() == 2 && pair[0] != pair[1]
+          && profileExists(pair[0]) && profileExists(pair[1])
+          && conversationId == pair[0] + ':' + pair[1];
+      }
+
+      allow read: if participant(resource.data);
+      allow create: if signedIn() && validParticipants(request.resource.data) && participant(request.resource.data);
+
+      match /historyCutoffs/{uid} {
+        allow get: if parentParticipant() && request.auth.uid == uid;
+        allow create, update: if parentParticipant() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['hiddenThrough'])
+          && request.resource.data.hiddenThrough == request.time;
+      }
+
+      match /messages/{messageId} {
+        allow read: if parentParticipant() && visibleMessage(resource.data.sentAt);
+        allow create: if parentParticipant()
+          && request.resource.data.keys().hasOnly(['senderId', 'body', 'sentAt'])
+          && request.resource.data.senderId == request.auth.uid
+          && text(request.resource.data.body, 500)
+          && request.resource.data.sentAt == request.time;
+      }
+    }
+  }
+}

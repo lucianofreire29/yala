@@ -1,0 +1,20 @@
+{
+  "name": "yala",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.x" },
+  "scripts": {
+    "build:online": "node tools/build-online.mjs",
+    "test": "node --test",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-yala \"node --test tools/firestore-check.mjs\""
+  },
+  "dependencies": {
+    "firebase": "13.4.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "esbuild": "0.28.2",
+    "firebase-tools": "15.37.0"
+  }
+}

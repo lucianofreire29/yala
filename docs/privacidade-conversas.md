@@ -84,7 +84,8 @@ anteriores. Uma nova mensagem apareceu para ambas. A regra individual persistiu
 após reiniciar o servidor. A API recusou exclusão sem sessão. O teste começou
 com o esquema anterior do SQLite e a nova tabela foi criada na inicialização.
 
-As regras de acesso e o marco por horário do servidor descritos para o Firebase
-seguem previstos para a versão online. O canal de direitos, a política de
+As regras de acesso e o marco por horário do servidor estão implementados na
+versão online. A verificação em emulador foi adicionada ao GitHub Actions e
+precisa ter o resultado confirmado antes do deploy. O canal de direitos, a política de
 retenção e o procedimento de eliminação permanecem pendentes de definição com
 a instituição antes de tratar dados reais.

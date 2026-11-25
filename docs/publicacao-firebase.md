@@ -1,6 +1,6 @@
 # Publicação do YALA no Render com Firebase
 
-O protótipo atual usa Node.js e SQLite. Para a versão online de testes, a proposta é hospedar a interface estática como Static Site no Render e usar Firebase Authentication e Cloud Firestore. O backend Node e o banco SQLite seguem disponíveis para a demonstração local durante a migração.
+O protótipo atual usa Node.js e SQLite. Para a versão online de testes, a proposta é hospedar a interface estática como Static Site no Render e usar Firebase Authentication e Cloud Firestore. O backend Node e o banco SQLite seguem disponíveis para a demonstração local. O build online seleciona o Firebase e muda o formulário de acesso para e-mail e senha.
 
 | Serviço | Uso no YALA |
 | --- | --- |
@@ -13,18 +13,37 @@ O protótipo atual usa Node.js e SQLite. Para a versão online de testes, a prop
 
 - `profiles/{uid}`. Nome de exibição, país, universidade, curso e interesses. O diretório pode ser lido por pessoas autenticadas. Cada pessoa edita o próprio perfil. O e-mail de login fica no Authentication.
 - `conversations/{id}`. Dois identificadores distintos de usuários. O par permanece fixo após a criação. A leitura é limitada aos participantes.
+- `conversations/{id}/historyCutoffs/{uid}`. Marco de exclusão definido pelo horário do servidor. Apenas o dono pode ler e atualizar o próprio marco.
 - `conversations/{id}/messages/{messageId}`. Remetente, texto de até 500 caracteres e horário do servidor. Só participantes podem consultar ou criar mensagens. O remetente deve corresponder à conta autenticada.
 - `avatars/{uid}/profile`. Caminho proposto para a foto. O envio deve ser limitado ao dono do perfil, com regras de tamanho e tipo. No primeiro teste, a interface pode exibir iniciais enquanto o upload estiver desativado.
 
-O Render serve os arquivos públicos da interface. O navegador acessa o Authentication e o Firestore diretamente. A migração requer trocar as chamadas ao servidor local pelas operações do Firebase e validar as regras do Firestore. Para preservar o filtro textual por universidade, curso e interesses no piloto, a interface pode aplicar a busca sobre o diretório carregado. O Firestore não oferece busca textual completa nativa.
+O Render serve apenas os arquivos gerados em `dist/`. O navegador acessa o Authentication e o Firestore diretamente. Os históricos são consultados no servidor e filtrados pelo marco de exclusão de cada conta. O identificador da conversa combina os dois UIDs, ordenados pelo cliente. O diretório guarda apenas os campos acadêmicos. Para preservar o filtro textual por universidade, curso e interesses no piloto, a interface pode aplicar a busca sobre o diretório carregado. O Firestore não oferece busca textual completa nativa.
 
 ## Publicação e verificação
 
 1. Identificar o projeto Firebase de teste autorizado e cadastrar a aplicação Web.
 2. Ativar login por e-mail e senha e criar o Firestore. Manter o acesso bloqueado até a publicação das regras específicas do YALA.
-3. Migrar o fluxo e verificar as regras com duas contas de teste e uma terceira sem acesso à conversa. Criar novas contas de teste no Authentication.
-4. Conectar o repositório ao Render, selecionar a branch de publicação e apontar o Static Site para um diretório com apenas os arquivos públicos da interface.
+3. Verificar as regras com `npm run test:rules` antes de publicá-las. Para aplicar ao projeto autorizado, usar `npx firebase deploy --only firestore:rules --project ID_DO_PROJETO` com uma conta autorizada.
+4. Conectar o repositório e a branch de publicação ao Render. O [Blueprint](../render.yaml) configura o Static Site, o build e o diretório `dist/`. Preencher as variáveis de build com a configuração pública do aplicativo Web.
 5. Configurar o domínio do Render no Firebase Authentication quando exigido pelo fluxo de login, como em provedores com redirecionamento. Repetir cadastro, busca, envio, leitura e isolamento no endereço HTTPS.
 6. Se o upload entrar no piloto, confirmar o plano Blaze exigido pelo Cloud Storage for Firebase, configurar o bucket e testar tamanho, tipo e acesso.
 
-O Render é a plataforma escolhida para a publicação. A versão atual ainda usa a API Node e o SQLite locais. A publicação como Static Site depende da migração da interface, de um projeto Firebase de teste e da conexão do repositório ao Render.
+## Variáveis do build
+
+| Variável | Campo da configuração Web do Firebase |
+| --- | --- |
+| `YALA_FIREBASE_API_KEY` | `apiKey` |
+| `YALA_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+| `YALA_FIREBASE_PROJECT_ID` | `projectId` |
+| `YALA_FIREBASE_APP_ID` | `appId` |
+
+Esses valores identificam o aplicativo Web e ficam no bundle do navegador.
+A autorização de acesso a dados depende das regras e da autenticação.
+
+## Verificação
+
+O build estático passou localmente com configuração fictícia. O teste do
+protótipo SQLite passou. A suíte do Firestore foi adicionada ao GitHub Actions.
+O download do emulador falhou no ambiente local, portanto a execução dos testes
+das regras precisa ser confirmada no Actions. A publicação e o teste com usuários
+em HTTPS dependem de um projeto Firebase autorizado e da conexão do Render.

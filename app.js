@@ -13,8 +13,23 @@ let ownProfile;
 let students = [];
 let recipient;
 let historyRequest = 0;
+const firebaseConfig = typeof YALA_FIREBASE_CONFIG === 'undefined' ? null : YALA_FIREBASE_CONFIG;
+const onlineApi = firebaseConfig
+  ? import('./firebase-browser.mjs').then(({ createFirebaseApi }) => createFirebaseApi(firebaseConfig))
+  : null;
+
+if (onlineApi) {
+  const email = auth.elements.username;
+  email.type = 'email';
+  email.autocomplete = 'email';
+  email.placeholder = 'voce@exemplo.com';
+  email.removeAttribute('pattern');
+  email.maxLength = 254;
+  byId('username-label').textContent = 'E-mail';
+}
 
 async function api(path, method = 'GET', data) {
+  if (onlineApi) return (await onlineApi)(path, method, data);
   const options = { method };
   if (data !== undefined) {
     options.headers = { 'Content-Type': 'application/json' };
@@ -45,7 +60,7 @@ function closeConversation() {
   recipient = null;
   byId('history').replaceChildren();
   byId('conversation').hidden = true;
-  if (previous) byId('cards').querySelector(`[data-peer="${previous.account_id}"]`)?.focus();
+  if (previous) byId('cards').querySelector(`[data-peer="${CSS.escape(String(previous.account_id))}"]`)?.focus();
 }
 
 function action(target, callback) {

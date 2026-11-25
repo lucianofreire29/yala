@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: yala
+    runtime: static
+    buildCommand: npm ci --include=dev && npm run build:online
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 24.22.3
+      - key: YALA_FIREBASE_API_KEY
+        sync: false
+      - key: YALA_FIREBASE_AUTH_DOMAIN
+        sync: false
+      - key: YALA_FIREBASE_PROJECT_ID
+        sync: false
+      - key: YALA_FIREBASE_APP_ID
+        sync: false

@@ -40,3 +40,10 @@ acesso, moderação e operação.
 Execute `node --test` com Node.js 24. O GitHub Actions verifica a sintaxe e
 executa o teste de integração em pushes e pull requests. O teste cria um banco
 temporário e verifica troca de mensagens, isolamento e exclusão individual.
+
+## Versão online
+
+O [plano de publicação](docs/publicacao-firebase.md) descreve as variáveis de
+build e o Blueprint do Render. Use `npm ci` e `npm run build:online` para
+gerar os arquivos estáticos. Os testes das regras do Firestore usam Java 21 e
+`npm run test:rules` com um projeto fictício no emulador.
