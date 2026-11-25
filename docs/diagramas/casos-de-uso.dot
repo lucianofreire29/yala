@@ -1,0 +1,20 @@
+graph YALA {
+  graph [rankdir=LR, bgcolor="white", fontname="DejaVu Sans", label="YALA 1.0 — Casos de uso", labelloc=t, pad=0.2];
+  node [fontname="DejaVu Sans", shape=ellipse, style=filled, fillcolor="#edf7f1", color="#285747"];
+  edge [color="#285747"];
+  visitante [label="«ator»\nVisitante", shape=plaintext];
+  estudante [label="«ator»\nEstudante autenticado", shape=plaintext];
+  subgraph cluster_yala {
+    label="Protótipo YALA 1.0"; color="#285747";
+    cadastro [label="Criar conta\nRF-01"];
+    login [label="Entrar\nRF-01"];
+    sair [label="Sair\nRF-01"];
+    perfil [label="Criar ou editar perfil\nRF-02"];
+    ver [label="Consultar diretório\nRF-03"];
+    filtrar [label="Pesquisar e filtrar\nRF-04"];
+    enviar [label="Enviar mensagem\nRF-05"];
+    historico [label="Consultar histórico\nRF-06"];
+  }
+  visitante -- {cadastro login};
+  estudante -- {sair perfil ver filtrar enviar historico};
+}
