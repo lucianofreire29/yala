@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#12382f">
+<title>YALA — Rede acadêmica sul-americana</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" type="module"></script>
+</head>
+<body>
+<a class="skip" href="#main">Ir para o conteúdo</a>
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="./" aria-label="YALA, início"><span class="brand-mark" aria-hidden="true">Y</span> YALA<span class="brand-dot">.</span></a>
+    <div id="session-bar" class="session-bar" hidden>
+      <nav aria-label="Navegação principal"><a href="#directory-title">Explorar</a><a href="#profile-title">Meu perfil</a></nav>
+      <span id="account-name"></span><button id="logout" class="quiet">Sair</button>
+    </div>
+  </div>
+</header>
+<main id="main" class="shell">
+  <p id="session-status" class="status" role="status"></p>
+  <section id="access" class="welcome" aria-labelledby="access-title">
+    <div class="welcome-visual">
+      <div class="welcome-copy">
+        <p class="eyebrow"><span></span> Rede acadêmica sul-americana</p>
+        <h1>Conhecimento<br>sem fronteiras.</h1>
+        <p>Encontre estudantes com interesses em comum e dê o primeiro passo para colaborar.</p>
+      </div>
+    </div>
+    <div class="access-panel">
+      <h2 id="access-title">Acesse o YALA</h2>
+      <p class="muted">Entre com sua conta ou crie uma para explorar a rede.</p>
+      <form id="auth">
+        <label>Usuário<input name="username" autocomplete="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Letras, números e _"></label>
+        <label>Senha<input name="password" type="password" autocomplete="current-password" required minlength="8" maxlength="128" placeholder="Pelo menos 8 caracteres"></label>
+        <div class="auth-actions"><button name="action" value="login">Entrar</button><button name="action" value="register" class="secondary">Criar conta</button></div>
+      </form>
+      <p class="access-note">Versão de teste. Use dados fictícios e uma senha exclusiva.</p>
+    </div>
+  </section>
+  <div id="workspace" hidden>
+    <section class="directory-banner">
+      <p class="eyebrow"><span></span> Rede acadêmica sul-americana</p>
+      <h1>Explore sua rede.</h1>
+      <p>Descubra quem estuda os mesmos temas e comece uma conversa.</p>
+    </section>
+    <div class="layout">
+      <section aria-labelledby="directory-title">
+        <div class="directory-tools panel">
+          <h2 id="directory-title">Explorar estudantes</h2>
+          <div class="filters">
+            <label>Universidade, curso ou interesse<input id="query" type="search" placeholder="Ex.: saúde pública"></label>
+            <label>País<select id="country"><option value="">Todos os países</option></select></label>
+          </div>
+          <div class="directory-meta">
+            <p id="count" role="status"></p>
+            <button type="button" id="refresh-directory" class="quiet">Atualizar diretório</button>
+          </div>
+        </div>
+        <div id="cards"></div>
+      </section>
+      <aside aria-label="Perfil e conversas">
+        <section class="panel" id="conversation" hidden aria-labelledby="conversation-title">
+          <div class="panel-heading">
+            <h2 id="conversation-title" tabindex="-1"></h2>
+            <button type="button" id="close-conversation" class="quiet">Fechar</button>
+          </div>
+          <p id="empty-conversation" class="muted" hidden>Nenhuma mensagem nesta conversa ainda.</p>
+          <ul id="history" aria-label="Histórico de mensagens" aria-live="polite"></ul>
+          <form id="message-form">
+            <label>Mensagem<textarea name="message" required maxlength="500" rows="3" placeholder="Escreva sua mensagem"></textarea></label>
+            <div class="message-actions">
+              <button>Enviar mensagem</button>
+              <button type="button" id="refresh-messages" class="quiet">Atualizar conversa</button>
+            </div>
+            <p id="message-status" role="status"></p>
+          </form>
+          <button type="button" id="clear-history" class="quiet destructive">Excluir conversa do meu histórico</button>
+        </section>
+        <section class="panel" aria-labelledby="profile-title">
+          <div class="panel-heading"><h2 id="profile-title">Meu perfil</h2><span class="avatar self-avatar" id="profile-avatar" aria-hidden="true"></span></div>
+          <p class="muted">Seu perfil fica visível para outras contas conectadas.</p>
+          <form id="profile">
+            <label>Nome no diretório<input name="name" required maxlength="60"></label>
+            <label>País<select name="country" required><option value="">Selecione</option></select></label>
+            <label>Universidade<input name="university" required maxlength="100"></label>
+            <label>Curso<input name="course" required maxlength="80"></label>
+            <label>Interesses<input name="interests" required maxlength="120"></label>
+            <button>Salvar perfil</button>
+            <p id="profile-status" role="status"></p>
+          </form>
+        </section>
+      </aside>
+    </div>
+  </div>
+  <dialog id="clear-history-dialog" aria-labelledby="clear-history-title" aria-describedby="clear-history-description">
+    <h2 id="clear-history-title">Excluir do meu histórico?</h2>
+    <p id="clear-history-description">Você perderá o acesso às mensagens anteriores. A outra pessoa mantém o histórico dela. Novas mensagens continuarão aparecendo para você.</p>
+    <form method="dialog" class="message-actions">
+      <button value="cancel" class="secondary" autofocus>Cancelar</button>
+      <button value="confirm" class="delete-confirm">Excluir meu histórico</button>
+    </form>
+  </dialog>
+</main>
+<footer class="shell">YALA · Projeto de Extensão · Faculdade Senac Ceará</footer>
+</body>
+</html>
