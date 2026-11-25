@@ -27,3 +27,5 @@ As fontes editáveis dos diagramas e a documentação técnica estão em [docs](
 - [Sigilo das conversas e LGPD](../docs/privacidade-conversas.md)
 
 - [Roteiro de implantação e teste online](roteiro-de-publicacao.md)
+
+- [Registro da verificação online](verificacao-online.md)
