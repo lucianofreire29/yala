@@ -26,7 +26,7 @@ jobs:
 
   firebase:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,5 +45,7 @@ jobs:
           YALA_FIREBASE_AUTH_DOMAIN: demo-yala.firebaseapp.com
           YALA_FIREBASE_PROJECT_ID: demo-yala
           YALA_FIREBASE_APP_ID: demo
-      - name: Testar regras do Firestore no emulador
-        run: npm run test:rules
+      - name: Instalar Chromium para o teste
+        run: npx playwright install --with-deps chromium
+      - name: Testar regras do Firestore e fluxo web nos emuladores
+        run: npm run test:online

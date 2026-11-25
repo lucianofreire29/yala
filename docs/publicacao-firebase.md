@@ -42,8 +42,23 @@ A autorização de acesso a dados depende das regras e da autenticação.
 
 ## Verificação
 
-O build estático passou localmente com configuração fictícia. O teste do
-protótipo SQLite passou. A suíte do Firestore foi adicionada ao GitHub Actions.
+O build estático passou localmente com configuração fictícia. Cadastro e login
+na interface foram verificados no Chromium com o emulador de Authentication.
+O teste do protótipo SQLite passou. A suíte do Firestore foi adicionada ao GitHub Actions.
 O download do emulador falhou no ambiente local, portanto a execução dos testes
 das regras precisa ser confirmada no Actions. A publicação e o teste com usuários
 em HTTPS dependem de um projeto Firebase autorizado e da conexão do Render.
+
+### Ensaio com contas fictícias
+
+Com Node.js 24 e Java 21, use `npm ci`, `npx playwright install chromium` e
+`npm run test:online`. O comando gera um build com configuração fictícia, usa
+Firebase Authentication e Firestore no loopback e executa os testes das regras
+e do navegador. O teste cria duas contas, envia mensagens e verifica a exclusão
+do histórico de uma conta e a leitura de mensagens novas pelas duas.
+
+O build de publicação usa `npm run build:online` sem a opção `--emulator` e
+exige os quatro campos da configuração Web. O build para emuladores é um
+artefato de teste local. Antes de publicar, a equipe precisa cadastrar o app
+Web no projeto Firebase autorizado, ativar e-mail/senha e iniciar o Firestore
+com acesso restrito.

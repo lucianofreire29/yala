@@ -1,18 +1,22 @@
 import { initializeApp } from 'firebase/app';
 import {
-  browserSessionPersistence, createUserWithEmailAndPassword, getAuth, setPersistence,
+  browserSessionPersistence, connectAuthEmulator, createUserWithEmailAndPassword, getAuth, setPersistence,
   signInWithEmailAndPassword, signOut,
 } from 'firebase/auth';
 import {
-  collection, doc, getDocFromServer, getDocsFromServer, getFirestore, orderBy, query,
+  collection, connectFirestoreEmulator, doc, getDocFromServer, getDocsFromServer, getFirestore, orderBy, query,
   serverTimestamp, setDoc, where, addDoc,
 } from 'firebase/firestore';
 
-export function createFirebaseApi(config) {
+export function createFirebaseApi(config, useEmulators) {
   const app = initializeApp(config);
   const auth = getAuth(app);
-  const persistence = setPersistence(auth, browserSessionPersistence);
   const db = getFirestore(app);
+  if (useEmulators) {
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099');
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  }
+  const persistence = setPersistence(auth, browserSessionPersistence);
 
   function thread(peer) {
     const uid = auth.currentUser.uid;

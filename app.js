@@ -15,7 +15,7 @@ let recipient;
 let historyRequest = 0;
 const firebaseConfig = typeof YALA_FIREBASE_CONFIG === 'undefined' ? null : YALA_FIREBASE_CONFIG;
 const onlineApi = firebaseConfig
-  ? import('./firebase-browser.mjs').then(({ createFirebaseApi }) => createFirebaseApi(firebaseConfig))
+  ? import('./firebase-browser.mjs').then(({ createFirebaseApi }) => createFirebaseApi(firebaseConfig, typeof YALA_USE_EMULATORS !== 'undefined' && YALA_USE_EMULATORS))
   : null;
 
 if (onlineApi) {

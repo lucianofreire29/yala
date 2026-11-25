@@ -47,3 +47,6 @@ O [plano de publicação](docs/publicacao-firebase.md) descreve as variáveis de
 build e o Blueprint do Render. Use `npm ci` e `npm run build:online` para
 gerar os arquivos estáticos. Os testes das regras do Firestore usam Java 21 e
 `npm run test:rules` com um projeto fictício no emulador.
+
+Para testar também a interface online com contas fictícias, instale Chromium
+com `npx playwright install chromium` e rode `npm run test:online`.
